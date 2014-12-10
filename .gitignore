@@ -1,0 +1,27 @@
+# mac
+.DS_Store
+
+# pc
+Thumbs.db
+
+# git
+.gitconfig
+
+# server
+error_log
+*.log
+
+# WordPress
+.htaccess
+sitemap.xml
+sitemap.xml.gz
+wp-config.php
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+wp-content/backup-db/
+wp-content/backups/
+wp-content/blogs.dir/
+wp-content/cache/
+wp-content/themes/twenty*
+wp-content/upgrade/
+wp-content/uploads/
