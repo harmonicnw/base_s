@@ -125,7 +125,7 @@ function base_s_scripts() {
 	}
 }
 
-function hnw_business_styles() {
+function base_s_styles() {
 	wp_enqueue_style( 'bootstrap', get_template_directory_uri() . '/assets/bower_components/bootstrap/dist/css/bootstrap.min.css' );
 	wp_enqueue_style( 'font-awesome', get_template_directory_uri() . '/assets/bower_components/components-font-awesome/css/font-awesome.min.css' );
 	wp_enqueue_style( 'foundation-icons', get_template_directory_uri() . '/fonts/foundation-icons.css' );
