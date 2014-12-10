@@ -1,0 +1,14 @@
+{
+  "name": "base-s",
+  "private": true,
+  "dependencies": {
+    "jquery": "~1.11.0",
+    "components-font-awesome": "~4.1.0",
+    "bootstrap": "~3.2.0",
+    "respondJS": "~1.4.2"
+  },
+  "devDependencies": {
+    "bourbon": "~4.0.2",
+    "jquery-validate": "~1.13.1"
+  }
+}
