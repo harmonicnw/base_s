@@ -10,10 +10,10 @@
  * Add theme support for Infinite Scroll.
  * See: http://jetpack.me/support/infinite-scroll/
  */
-function hnw_base_s_jetpack_setup() {
+function base_s_jetpack_setup() {
 	add_theme_support( 'infinite-scroll', array(
 		'container' => 'main',
 		'footer'    => 'page',
 	) );
 }
-add_action( 'after_setup_theme', 'hnw_base_s_jetpack_setup' );
+add_action( 'after_setup_theme', 'base_s_jetpack_setup' );

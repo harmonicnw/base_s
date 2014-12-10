@@ -18,31 +18,31 @@
 /**
  * Set up the WordPress core custom header feature.
  *
- * @uses hnw_base_s_header_style()
- * @uses hnw_base_s_admin_header_style()
- * @uses hnw_base_s_admin_header_image()
+ * @uses base_s_header_style()
+ * @uses base_s_admin_header_style()
+ * @uses base_s_admin_header_image()
  */
-function hnw_base_s_custom_header_setup() {
-	add_theme_support( 'custom-header', apply_filters( 'hnw_base_s_custom_header_args', array(
+function base_s_custom_header_setup() {
+	add_theme_support( 'custom-header', apply_filters( 'base_s_custom_header_args', array(
 		'default-image'          => '',
 		'default-text-color'     => '000000',
 		'width'                  => 1000,
 		'height'                 => 250,
 		'flex-height'            => true,
-		'wp-head-callback'       => 'hnw_base_s_header_style',
-		'admin-head-callback'    => 'hnw_base_s_admin_header_style',
-		'admin-preview-callback' => 'hnw_base_s_admin_header_image',
+		'wp-head-callback'       => 'base_s_header_style',
+		'admin-head-callback'    => 'base_s_admin_header_style',
+		'admin-preview-callback' => 'base_s_admin_header_image',
 	) ) );
 }
-add_action( 'after_setup_theme', 'hnw_base_s_custom_header_setup' );
+add_action( 'after_setup_theme', 'base_s_custom_header_setup' );
 
-if ( ! function_exists( 'hnw_base_s_header_style' ) ) :
+if ( ! function_exists( 'base_s_header_style' ) ) :
 /**
  * Styles the header image and text displayed on the blog
  *
- * @see hnw_base_s_custom_header_setup().
+ * @see base_s_custom_header_setup().
  */
-function hnw_base_s_header_style() {
+function base_s_header_style() {
 	$header_text_color = get_header_textcolor();
 
 	// If no custom options for text are set, let's bail
@@ -75,15 +75,15 @@ function hnw_base_s_header_style() {
 	</style>
 	<?php
 }
-endif; // hnw_base_s_header_style
+endif; // base_s_header_style
 
-if ( ! function_exists( 'hnw_base_s_admin_header_style' ) ) :
+if ( ! function_exists( 'base_s_admin_header_style' ) ) :
 /**
  * Styles the header image displayed on the Appearance > Header admin panel.
  *
- * @see hnw_base_s_custom_header_setup().
+ * @see base_s_custom_header_setup().
  */
-function hnw_base_s_admin_header_style() {
+function base_s_admin_header_style() {
 ?>
 	<style type="text/css">
 		.appearance_page_custom-header #headimg {
@@ -103,15 +103,15 @@ function hnw_base_s_admin_header_style() {
 	</style>
 <?php
 }
-endif; // hnw_base_s_admin_header_style
+endif; // base_s_admin_header_style
 
-if ( ! function_exists( 'hnw_base_s_admin_header_image' ) ) :
+if ( ! function_exists( 'base_s_admin_header_image' ) ) :
 /**
  * Custom header image markup displayed on the Appearance > Header admin panel.
  *
- * @see hnw_base_s_custom_header_setup().
+ * @see base_s_custom_header_setup().
  */
-function hnw_base_s_admin_header_image() {
+function base_s_admin_header_image() {
 	$style = sprintf( ' style="color:#%s;"', get_header_textcolor() );
 ?>
 	<div id="headimg">
@@ -123,4 +123,4 @@ function hnw_base_s_admin_header_image() {
 	</div>
 <?php
 }
-endif; // hnw_base_s_admin_header_image
+endif; // base_s_admin_header_image

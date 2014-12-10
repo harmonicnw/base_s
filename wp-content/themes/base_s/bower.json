@@ -8,7 +8,6 @@
     "respondJS": "~1.4.2"
   },
   "devDependencies": {
-    "bourbon": "~4.0.2",
-    "jquery-validate": "~1.13.1"
+    "bourbon": "~4.0.2"
   }
 }

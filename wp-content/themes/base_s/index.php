@@ -31,7 +31,7 @@ get_header(); ?>
 
 			<?php endwhile; ?>
 
-			<?php hnw_base_s_paging_nav(); ?>
+			<?php base_s_paging_nav(); ?>
 
 		<?php else : ?>
 

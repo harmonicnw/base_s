@@ -12,7 +12,7 @@ if ( ! isset( $content_width ) ) {
 	$content_width = 640; /* pixels */
 }
 
-if ( ! function_exists( 'hnw_base_s_setup' ) ) :
+if ( ! function_exists( 'base_s_setup' ) ) :
 /**
  * Sets up theme defaults and registers support for various WordPress features.
  *
@@ -20,15 +20,15 @@ if ( ! function_exists( 'hnw_base_s_setup' ) ) :
  * runs before the init hook. The init hook is too late for some features, such
  * as indicating support for post thumbnails.
  */
-function hnw_base_s_setup() {
+function base_s_setup() {
 
 	/*
 	 * Make theme available for translation.
 	 * Translations can be filed in the /languages/ directory.
 	 * If you're building a theme based on Harmonic Northwest Underscores Base Theme, use a find and replace
-	 * to change 'hnw_base_s' to the name of your theme in all the template files
+	 * to change 'base_s' to the name of your theme in all the template files
 	 */
-	load_theme_textdomain( 'hnw_base_s', get_template_directory() . '/languages' );
+	load_theme_textdomain( 'base_s', get_template_directory() . '/languages' );
 
 	// Add default posts and comments RSS feed links to head.
 	add_theme_support( 'automatic-feed-links' );
@@ -50,7 +50,7 @@ function hnw_base_s_setup() {
 
 	// This theme uses wp_nav_menu() in one location.
 	register_nav_menus( array(
-		'primary' => __( 'Primary Menu', 'hnw_base_s' ),
+		'primary' => __( 'Primary Menu', 'base_s' ),
 	) );
 
 	/*
@@ -70,22 +70,22 @@ function hnw_base_s_setup() {
 	) );
 
 	// Set up the WordPress core custom background feature.
-	add_theme_support( 'custom-background', apply_filters( 'hnw_base_s_custom_background_args', array(
+	add_theme_support( 'custom-background', apply_filters( 'base_s_custom_background_args', array(
 		'default-color' => 'ffffff',
 		'default-image' => '',
 	) ) );
 }
-endif; // hnw_base_s_setup
-add_action( 'after_setup_theme', 'hnw_base_s_setup' );
+endif; // base_s_setup
+add_action( 'after_setup_theme', 'base_s_setup' );
 
 /**
  * Register widget area.
  *
  * @link http://codex.wordpress.org/Function_Reference/register_sidebar
  */
-function hnw_base_s_widgets_init() {
+function base_s_widgets_init() {
 	register_sidebar( array(
-		'name'          => __( 'Sidebar', 'hnw_base_s' ),
+		'name'          => __( 'Sidebar', 'base_s' ),
 		'id'            => 'sidebar-1',
 		'description'   => '',
 		'before_widget' => '<aside id="%1$s" class="widget %2$s">',
@@ -94,23 +94,48 @@ function hnw_base_s_widgets_init() {
 		'after_title'   => '</h1>',
 	) );
 }
-add_action( 'widgets_init', 'hnw_base_s_widgets_init' );
+add_action( 'widgets_init', 'base_s_widgets_init' );
 
 /**
  * Enqueue scripts and styles.
  */
-function hnw_base_s_scripts() {
-	wp_enqueue_style( 'hnw_base_s-style', get_stylesheet_uri() );
+/*
+function base_s_scripts() {
+	wp_enqueue_style( 'base_s-style', get_stylesheet_uri() );
 
-	wp_enqueue_script( 'hnw_base_s-navigation', get_template_directory_uri() . '/js/navigation.js', array(), '20120206', true );
+	wp_enqueue_script( 'base_s-navigation', get_template_directory_uri() . '/js/navigation.js', array(), '20120206', true );
 
-	wp_enqueue_script( 'hnw_base_s-skip-link-focus-fix', get_template_directory_uri() . '/js/skip-link-focus-fix.js', array(), '20130115', true );
-
+	wp_enqueue_script( 'base_s-skip-link-focus-fix', get_template_directory_uri() . '/js/skip-link-focus-fix.js', array(), '20130115', true );
+	
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
 	}
 }
-add_action( 'wp_enqueue_scripts', 'hnw_base_s_scripts' );
+add_action( 'wp_enqueue_scripts', 'base_s_scripts' );
+*/
+
+function base_s_scripts() {
+	wp_enqueue_script( 'jquery' );
+	wp_enqueue_script( 'custom_plugins', get_template_directory_uri() . '/assets/js/plugins.min.js', array('jquery'), NULL, true );
+	wp_enqueue_script( 'bootstrap', get_template_directory_uri() . '/assets/bower_components/bootstrap/dist/js/bootstrap.min.js', NULL);
+	wp_enqueue_script( 'custom_scripts', get_template_directory_uri() . '/assets/js/main.min.js', array('jquery', 'custom_plugins', 'bootstrap'), NULL );
+	
+	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
+		wp_enqueue_script( 'comment-reply' );
+	}
+}
+
+function hnw_business_styles() {
+	wp_enqueue_style( 'bootstrap', get_template_directory_uri() . '/assets/bower_components/bootstrap/dist/css/bootstrap.min.css' );
+	wp_enqueue_style( 'font-awesome', get_template_directory_uri() . '/assets/bower_components/components-font-awesome/css/font-awesome.min.css' );
+	wp_enqueue_style( 'foundation-icons', get_template_directory_uri() . '/fonts/foundation-icons.css' );
+	wp_enqueue_style( 'hnw-business-theme-style', get_template_directory_uri() . '/assets/styles/build/main.css', array('bootstrap'), false, 'screen');
+	wp_enqueue_style( 'print-styles', get_template_directory_uri() . '/assets/styles/build/print.css', array(), false, 'print');
+}
+
+// Enqueue styles and scripts
+add_action( 'wp_enqueue_scripts', 'base_s_styles' );
+add_action( 'wp_enqueue_scripts', 'base_s_scripts' );
 
 /**
  * Implement the Custom Header feature.
@@ -135,4 +160,4 @@ require get_template_directory() . '/inc/customizer.php';
 /**
  * Load Jetpack compatibility file.
  */
-require get_template_directory() . '/inc/jetpack.php';
+//require get_template_directory() . '/inc/jetpack.php';

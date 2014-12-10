@@ -13,11 +13,11 @@
  * @param array $args Configuration arguments.
  * @return array
  */
-function hnw_base_s_page_menu_args( $args ) {
+function base_s_page_menu_args( $args ) {
 	$args['show_home'] = true;
 	return $args;
 }
-add_filter( 'wp_page_menu_args', 'hnw_base_s_page_menu_args' );
+add_filter( 'wp_page_menu_args', 'base_s_page_menu_args' );
 
 /**
  * Adds custom classes to the array of body classes.
@@ -25,7 +25,7 @@ add_filter( 'wp_page_menu_args', 'hnw_base_s_page_menu_args' );
  * @param array $classes Classes for the body element.
  * @return array
  */
-function hnw_base_s_body_classes( $classes ) {
+function base_s_body_classes( $classes ) {
 	// Adds a class of group-blog to blogs with more than 1 published author.
 	if ( is_multi_author() ) {
 		$classes[] = 'group-blog';
@@ -33,7 +33,7 @@ function hnw_base_s_body_classes( $classes ) {
 
 	return $classes;
 }
-add_filter( 'body_class', 'hnw_base_s_body_classes' );
+add_filter( 'body_class', 'base_s_body_classes' );
 
 if ( ! function_exists( '_wp_render_title_tag' ) ) :
 	/**
@@ -43,7 +43,7 @@ if ( ! function_exists( '_wp_render_title_tag' ) ) :
 	 * @param string $sep Optional separator.
 	 * @return string The filtered title.
 	 */
-	function hnw_base_s_wp_title( $title, $sep ) {
+	function base_s_wp_title( $title, $sep ) {
 		if ( is_feed() ) {
 			return $title;
 		}
@@ -61,12 +61,12 @@ if ( ! function_exists( '_wp_render_title_tag' ) ) :
 
 		// Add a page number if necessary:
 		if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
-			$title .= " $sep " . sprintf( __( 'Page %s', 'hnw_base_s' ), max( $paged, $page ) );
+			$title .= " $sep " . sprintf( __( 'Page %s', 'base_s' ), max( $paged, $page ) );
 		}
 
 		return $title;
 	}
-	add_filter( 'wp_title', 'hnw_base_s_wp_title', 10, 2 );
+	add_filter( 'wp_title', 'base_s_wp_title', 10, 2 );
 endif;
 
 if ( ! function_exists( '_wp_render_title_tag' ) ) :
@@ -76,10 +76,10 @@ if ( ! function_exists( '_wp_render_title_tag' ) ) :
 	 * @link https://make.wordpress.org/core/2014/10/29/title-tags-in-4-1/
 	 * @todo Remove this function when WordPress 4.3 is released.
 	 */
-	function hnw_base_s_render_title() {
+	function base_s_render_title() {
 		echo '<title>' . wp_title( '|', false, 'right' ) . "</title>\n";
 	}
-	add_action( 'wp_head', 'hnw_base_s_render_title' );
+	add_action( 'wp_head', 'base_s_render_title' );
 endif;
 
 /**
@@ -94,11 +94,11 @@ endif;
  * @global WP_Query $wp_query WordPress Query object.
  * @return void
  */
-function hnw_base_s_setup_author() {
+function base_s_setup_author() {
 	global $wp_query;
 
 	if ( $wp_query->is_author() && isset( $wp_query->post ) ) {
 		$GLOBALS['authordata'] = get_userdata( $wp_query->post->post_author );
 	}
 }
-add_action( 'wp', 'hnw_base_s_setup_author' );
+add_action( 'wp', 'base_s_setup_author' );
