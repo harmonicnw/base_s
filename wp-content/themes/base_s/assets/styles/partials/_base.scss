@@ -23,6 +23,14 @@
 --------------------------------------------------------------*/
 
 /*--------------------------------------------------------------
+0.0 Variables
+--------------------------------------------------------------*/
+
+$text-default: #000000;
+$highlight: #f89800;
+$spacing-unit: 18px;
+
+/*--------------------------------------------------------------
 1.0 Reset
 --------------------------------------------------------------*/
 html, body, div, span, applet, object, iframe,
@@ -139,8 +147,41 @@ h6 {
 	clear: both;
 }
 
-p {
-	margin-bottom: 1.5em;
+p,
+ul,
+ol,
+li {
+	margin-bottom: $spacing-unit;
+}
+
+/* Remove top margin for first element in column */
+p,
+ul,
+ol,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+blockquote,
+table {
+	&:first-child {
+		margin-top: 0;
+	}
+}
+
+/* Remove bottom margin for last element in column */
+p,
+ul,
+ol,
+blockquote,
+table {
+	margin: $spacing-unit*0.5 0;
+	
+	&:last-child {
+		margin-bottom: 0;
+	}
 }
 
 b,
