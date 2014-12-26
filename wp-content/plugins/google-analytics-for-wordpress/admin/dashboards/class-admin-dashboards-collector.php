@@ -40,18 +40,6 @@ if ( ! class_exists( 'Yoast_GA_Dashboards_Collector' ) ) {
 		public $ga_profile_id;
 
 		/**
-		 * The $_GET pages where the shutdown hook should be executed to aggregate data
-		 *
-		 * @var array
-		 */
-		private $shutdown_get_pages = array( 'yst_ga_dashboard' );
-
-		/**
-		 * The $_SERVER['SCRIPT_NAME'] pages where the shutdown hook should be executed to aggregate data
-		 */
-		private $shutdown_pages = array( '/wp-admin/index.php' );
-
-		/**
 		 * Construct on the dashboards class for GA
 		 *
 		 * @param $ga_profile_id
@@ -75,24 +63,23 @@ if ( ! class_exists( 'Yoast_GA_Dashboards_Collector' ) ) {
 		 * Fetch the data from Google Analytics and store it
 		 */
 		public function aggregate_data() {
-			$access_tokens = $this->options->get_access_token();
-
-			if ( $access_tokens != false && is_array( $access_tokens ) ) {
-				// Access tokens are set, continue
+			if ( is_numeric( $this->ga_profile_id ) ) {
+				// ProfileID is set
 
 				/**
 				 * Implement the metric data first
 				 */
 				if ( is_array( $this->active_metrics ) && count( $this->active_metrics ) >= 1 ) {
-					$this->aggregate_metrics( $access_tokens, $this->active_metrics );
+					$this->aggregate_metrics( $this->active_metrics );
 				}
 
 				/**
 				 * Now implement the dimensions that are set
 				 */
 				if ( is_array( $this->dimensions ) && count( $this->dimensions ) >= 1 ) {
-					$this->aggregate_dimensions( $access_tokens, $this->dimensions );
+					$this->aggregate_dimensions( $this->dimensions );
 				}
+
 			} else {
 				// Failure on authenticating, please reauthenticate
 			}
@@ -104,13 +91,57 @@ if ( ! class_exists( 'Yoast_GA_Dashboards_Collector' ) ) {
 		private function init_shutdown_hook() {
 			$this->api = Yoast_Api_Libs::load_api_libraries( array( 'oauth', 'googleanalytics' ) );
 
-			if ( is_admin() && ! defined( 'DOING_AJAX' ) ) {
-				if ( $this->run_shutdown_hook_get() || $this->run_shutdown_hook_page() ) {
-					add_action( 'shutdown', array( $this, 'aggregate_data' ), 10 );
+			// Hook the WP cron event
+			add_action( 'wp', array( $this, 'setup_wp_cron_aggregate' ) );
 
-					return;
+			// Hook our function to the WP cron event the fetch data daily
+			add_action( 'yst_ga_aggregate_data', array( $this, 'aggregate_data' ) );
+
+			// Check if the WP cron did run on time
+			if ( isset( $_GET['page'] ) && ( $_GET['page'] === 'yst_ga_dashboard' || $_GET['page'] === 'yst_ga_settings' ) ) {
+				add_action( 'shutdown', array( $this, 'check_api_call_hook' ) );
+			}
+		}
+
+		/**
+		 * Check if we scheduled the WP cron event, if not, do so.
+		 */
+		public function setup_wp_cron_aggregate() {
+			if ( ! wp_next_scheduled( 'yst_ga_aggregate_data' ) ) {
+				// Set the next event of fetching data
+				wp_schedule_event( strtotime( date( 'Y-m-d', strtotime( 'tomorrow' ) ) . ' 00:05:00 ' ), 'daily', 'yst_ga_aggregate_data' );
+			}
+		}
+
+		/**
+		 * Check if the WP cron did run yesterday. If not, we need to run it form here
+		 */
+		public function check_api_call_hook( ) {
+			$last_run = $this->get_last_aggregate_run();
+
+			if ( $last_run === false ) {
+				/**
+				 * Transient doesn't exists, so we need to run the
+				 * hook (This function runs already on Shutdown so
+				 * we can call it directly from now on)
+				 */
+				$this->aggregate_data();
+			} else {
+				// Transient exists
+				if ( Yoast_GA_Utils::hours_between( strtotime( $last_run ), time() ) >= 24 ) {
+					$this->aggregate_data();
 				}
 			}
+		}
+
+
+		/**
+		 * Get the datetime when the aggregate data function was succesful
+		 *
+		 * @return datetime
+		 */
+		private function get_last_aggregate_run() {
+			return get_option( 'yst_ga_last_wp_run' );
 		}
 
 		/**
@@ -183,31 +214,29 @@ if ( ! class_exists( 'Yoast_GA_Dashboards_Collector' ) ) {
 		/**
 		 * Aggregate metrics from GA. This function should be called in the shutdown function.
 		 *
-		 * @param $access_tokens
 		 * @param $metrics
 		 */
-		private function aggregate_metrics( $access_tokens, $metrics ) {
+		private function aggregate_metrics( $metrics ) {
 			foreach ( $metrics as $metric ) {
-				$this->execute_call( $access_tokens, $metric, date( 'Y-m-d', strtotime( '-6 weeks' ) ), date( 'Y-m-d' ) );
+				$this->execute_call( $metric, date( 'Y-m-d', strtotime( '-6 weeks' ) ), date( 'Y-m-d', strtotime( 'yesterday' ) ) );
 			}
 		}
 
 		/**
 		 * Aggregate dimensions from GA. This function should be called in the shutdown function.
 		 *
-		 * @param $access_tokens
 		 * @param $dimensions
 		 */
-		private function aggregate_dimensions( $access_tokens, $dimensions ) {
+		private function aggregate_dimensions( $dimensions ) {
 			foreach ( $dimensions as $dimension ) {
 				if ( ( isset( $dimension['id'] ) || isset( $dimension['dimension'] ) ) && isset( $dimension['metric'] ) ) {
 					if ( isset( $dimension['id'] ) ) {
-						$this->execute_call( $access_tokens, $dimension['metric'], date( 'Y-m-d', strtotime( '-1 month' ) ), date( 'Y-m-d' ), 'ga:dimension' . $dimension['id'] );
+						$this->execute_call( $dimension['metric'], date( 'Y-m-d', strtotime( '-1 month' ) ), date( 'Y-m-d', strtotime( 'yesterday' ) ), 'ga:dimension' . $dimension['id'] );
 					} elseif ( isset( $dimension['dimension'] ) ) {
 						if ( isset( $dimension['storage_name'] ) ) {
-							$this->execute_call( $access_tokens, $dimension['metric'], date( 'Y-m-d', strtotime( '-1 month' ) ), date( 'Y-m-d' ), 'ga:' . $dimension['dimension'], $dimension['storage_name'] );
+							$this->execute_call( $dimension['metric'], date( 'Y-m-d', strtotime( '-1 month' ) ), date( 'Y-m-d', strtotime( 'yesterday' ) ), 'ga:' . $dimension['dimension'], $dimension['storage_name'] );
 						} else {
-							$this->execute_call( $access_tokens, $dimension['metric'], date( 'Y-m-d', strtotime( '-1 month' ) ), date( 'Y-m-d' ), 'ga:' . $dimension['dimension'] );
+							$this->execute_call( $dimension['metric'], date( 'Y-m-d', strtotime( '-1 month' ) ), date( 'Y-m-d', strtotime( 'yesterday' ) ), 'ga:' . $dimension['dimension'] );
 						}
 					}
 				}
@@ -215,35 +244,8 @@ if ( ! class_exists( 'Yoast_GA_Dashboards_Collector' ) ) {
 		}
 
 		/**
-		 * Check if the shutdown hook should be ran on the GET var
-		 *
-		 * @return bool
-		 */
-		private function run_shutdown_hook_get() {
-			if ( isset( $_GET['page'] ) && in_array( $_GET['page'], $this->shutdown_get_pages ) ) {
-				return true;
-			}
-
-			return false;
-		}
-
-		/**
-		 * Check if the shutdown hook should be ran on this page
-		 *
-		 * @return bool
-		 */
-		private function run_shutdown_hook_page() {
-			if ( isset( $_SERVER['SCRIPT_NAME'] ) && in_array( $_SERVER['SCRIPT_NAME'], $this->shutdown_pages ) ) {
-				return true;
-			}
-
-			return false;
-		}
-
-		/**
 		 * Execute an API call to Google Analytics and store the data in the dashboards data class
 		 *
-		 * @param $access_tokens
 		 * @param $metric
 		 * @param $start_date   2014-10-16
 		 * @param $end_date     2014-11-20
@@ -252,20 +254,18 @@ if ( ! class_exists( 'Yoast_GA_Dashboards_Collector' ) ) {
 		 *
 		 * @return bool
 		 */
-		private function execute_call( $access_tokens, $metric, $start_date, $end_date, $dimensions = 'ga:date', $storage_name = 'auto' ) {
+		private function execute_call( $metric, $start_date, $end_date, $dimensions = 'ga:date', $storage_name = 'auto' ) {
 			$dimensions   = $this->prepare_dimensions( $dimensions, $metric );
 			$params       = $this->build_params_for_call( $start_date, $end_date, $dimensions, $metric );
 			$storage_type = $this->get_storage_type( $dimensions );
 
-			$response = Yoast_Googleanalytics_Reporting::instance()->do_api_request(
-				'https://www.googleapis.com/analytics/v3/data/ga?' . $params,
-				'https://www.googleapis.com/analytics/v3/data/ga',
-				$access_tokens['oauth_token'],
-				$access_tokens['oauth_token_secret'],
-				$storage_type,
-				$start_date,
-				$end_date
-			);
+			$response = Yoast_Google_Analytics::get_instance()->do_request( 'https://www.googleapis.com/analytics/v3/data/ga?' . $params );
+
+			if ( isset( $response['response']['code'] ) && $response['response']['code'] == 200 ) {
+				$response = Yoast_Googleanalytics_Reporting::get_instance()->parse_response( $response, $storage_type, $start_date, $end_date );
+			} else {
+				return false;
+			}
 
 			if ( strpos( 'ga:date', $dimensions ) !== false ) {
 				return $this->handle_response( $response, $metric, $dimensions, $start_date, $end_date, 'datelist', $storage_name );
@@ -374,7 +374,7 @@ if ( ! class_exists( 'Yoast_GA_Dashboards_Collector' ) ) {
 		 * @return bool
 		 */
 		private function handle_response( $response, $metric, $dimensions, $start_date, $end_date, $store_as = 'table', $storage_name = 'auto' ) {
-			if ( is_array( $response ) && isset( $response['response']['code'] ) && $response['response']['code'] == 200 ) {
+			if ( is_array( $response ) ) {
 				// Success, store this data
 				$filter_metrics = $this->get_filter_metrics();
 				$extracted      = str_replace( 'ga:', '', str_replace( 'ga:date,', '', $dimensions ) );
@@ -395,10 +395,17 @@ if ( ! class_exists( 'Yoast_GA_Dashboards_Collector' ) ) {
 					$name = $storage_name;
 				}
 
-				return Yoast_GA_Dashboards_Data::set( $name, $response['body'], strtotime( $start_date ), strtotime( $end_date ), $store_as );
+				/**
+				 * Success, set a transient which stores the latest runtime
+				 */
+				if ( ! empty( $response ) ) {
+					update_option( 'yst_ga_last_wp_run', date( 'Y-m-d' ) );
+				}
+
+				return Yoast_GA_Dashboards_Data::set( $name, $response, strtotime( $start_date ), strtotime( $end_date ), $store_as );
 			} else {
 				// Failure on API call try to log it
-				$this->log_error( print_r( $response['body_raw'], true ) );
+				$this->log_error( print_r( $response, true ) );
 
 				return false;
 			}
