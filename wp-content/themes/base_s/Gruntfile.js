@@ -90,13 +90,7 @@ module.exports = function(grunt) {
                 },
                 files: {
                     'assets/js/plugins.min.js': [
-                        'assets/js/vendor/respond.min.js',
-                        'assets/js/vendor/modernizr.custom.51814.js',
-                        'assets/js/vendor/waypoints.min.js',
-                        'assets/js/vendor/waypoints-sticky.min.js',
-                        'assets/js/vendor/css_browser_selector.js',
-                        'assets/js/vendor/clamp.min.js',
-                        'assets/js/vendor/jquery.validate.min.js'
+                        'assets/js/vendor/respond.min.js'
                     ]
                 }
             },
@@ -106,7 +100,7 @@ module.exports = function(grunt) {
                 },
                 files: {
                     'assets/js/main.min.js': [
-                        'assets/js/source/jquery.hmc-removetel.js',
+                        'assets/js/source/base.js',
                         'assets/js/source/main.js'
                     ],
 
