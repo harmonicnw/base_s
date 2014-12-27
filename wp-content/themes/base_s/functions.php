@@ -161,3 +161,57 @@ require get_template_directory() . '/inc/customizer.php';
  * Load Jetpack compatibility file.
  */
 //require get_template_directory() . '/inc/jetpack.php';
+
+
+/**
+ * Create custom post types.
+ */
+/*
+function custom_post_types() {
+	$article_args = array(
+		'labels' => label_array_maker('Article', 'Articles', 'article'),
+		'supports' => array(
+			'title',
+			'editor',
+			'revisions',
+			'thumbnail',
+			'page-attributes',
+			'excerpt'
+		),
+		'capability_type' => 'page',
+		'hierarchical' => true,
+		'public' => true,
+		'query_var' => 'article',
+		'show_ui' => true,
+		'rewrite' => true,
+		'exclude_from_search' => false,
+		'taxonomies' => array('tag'),
+		'menu_icon' => 'dashicons-media-document'
+	);
+	register_post_type( 'article', $article_args );
+}
+add_action( 'init', 'custom_post_types');
+*/
+
+
+/* ============================================
+  WHIP OUT A CUSTOM POST TYPE'S LABEL ARRAY LIKE IT'S NO BIG DEAL
+============================================ */
+
+function label_array_maker($sing='Post', $plur='Posts', $type=NULL) {
+	if (!$type) {$type = strtolower($sing);}
+	$labels = array(
+		'name' => __( $plur ), // option to show in menu
+		'singular_name' => __( $sing ),
+		'add_new_item' => __( 'Add New ' . $sing ),
+		'edit_item' => __( 'Edit ' . $sing ),
+		'new_item' => __( 'New ' . $sing ),
+		'view' => __( 'View ' . $sing ),
+		'view_item' => __( 'View ' . $sing ),
+		'search_items' => __( 'Search ' . $plur ),
+		'not_found' => __( "No " . $plur . " found - <a href='" . get_bloginfo('url') . "/wp-admin/post-new.php?post_type=" . $type . "' style='font-style: italic;'>create one</a>" ),
+		'not_found_in_trash' => __( 'No ' . $plur . ' found in Trash' ),
+		'parent' => __( 'Parent ' . $sing ),
+	);
+	return($labels);
+}
