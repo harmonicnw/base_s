@@ -90,7 +90,8 @@ module.exports = function(grunt) {
                 },
                 files: {
                     'assets/js/plugins.min.js': [
-                        'assets/js/vendor/respond.min.js'
+                        'assets/js/vendor/respond.min.js',
+                        'assets/js/vendor/modernizr.custom.51814.js'
                     ]
                 }
             },
@@ -100,7 +101,6 @@ module.exports = function(grunt) {
                 },
                 files: {
                     'assets/js/main.min.js': [
-                        'assets/js/source/base.js',
                         'assets/js/source/main.js'
                     ],
 
