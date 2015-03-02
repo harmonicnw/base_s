@@ -130,6 +130,21 @@ String.prototype.panelsProcessTemplate = function(){
             // Create a deep clone of the original values
             var cloneValues = JSON.parse( JSON.stringify( this.get('values') ) );
 
+            // We want to exclude any fields that start with _ from the clone. Assuming these are internal.
+            var cleanClone = function(vals){
+                _.each( vals, function(el, i){
+                    if( typeof i === 'string' && i[0] === '_' ) {
+                        delete vals[i];
+                    }
+                    else if ( _.isObject( vals[i] ) ) {
+                        cleanClone( vals[i] );
+                    }
+                } );
+
+                return vals;
+            };
+            cloneValues = cleanClone(cloneValues);
+
             if( this.get('class') === "SiteOrigin_Panels_Widgets_Layout" ) {
                 // Special case of this being a layout widget, it needs a new ID
                 cloneValues.builder_id = Math.random().toString(36).substr(2);
@@ -147,7 +162,11 @@ String.prototype.panelsProcessTemplate = function(){
          */
         getTitle: function(){
             var widgetData = panelsOptions.widgets[this.get('class')];
-            if( typeof widgetData.panels_title !== 'undefined' ) {
+
+            if( typeof widgetData === 'undefined' ) {
+                return this.get('class').replace(/_/g, ' ');
+            }
+            else if( typeof widgetData.panels_title !== 'undefined' ) {
                 // This means that the widget has told us which field it wants us to use as a title
                 if( widgetData.panels_title === false ) {
                     return panelsOptions.widgets[this.get('class')].description;
@@ -1301,6 +1320,8 @@ String.prototype.panelsProcessTemplate = function(){
             this.$el
                 .attr( 'id', 'siteorigin-panels-builder-' + this.cid )
                 .addClass('so-builder-container');
+
+            this.trigger( 'builder_rendered' );
             return this;
         },
 
@@ -1324,6 +1345,7 @@ String.prototype.panelsProcessTemplate = function(){
                 this.$el.appendTo( options.container );
                 this.metabox = options.container.closest('.postbox');
                 this.initSortable();
+                this.trigger('attached_to_container', options.container);
             }
 
             return this;
@@ -1698,7 +1720,7 @@ String.prototype.panelsProcessTemplate = function(){
 
                 // We're going to create a copy of page builder content into the post content
                 $.post(
-                    ajaxurl,
+                    panelsOptions.ajaxurl,
                     {
                         action: 'so_panels_builder_content',
                         panels_data: JSON.stringify( this.model.getPanelsData() ),
@@ -2551,7 +2573,7 @@ String.prototype.panelsProcessTemplate = function(){
             };
 
             $.post(
-                ajaxurl,
+                panelsOptions.ajaxurl,
                 data,
                 function(result){
                     // Add in the CID of the widget model
@@ -2699,7 +2721,7 @@ String.prototype.panelsProcessTemplate = function(){
                 this.$('.so-content').addClass('so-panels-loading');
 
                 $.post(
-                    ajaxurl,
+                    panelsOptions.ajaxurl,
                     {
                         action: 'so_panels_prebuilt_layouts',
                         type: tab
@@ -2732,22 +2754,25 @@ String.prototype.panelsProcessTemplate = function(){
                 return;
             }
 
-            for (var lid in layouts) {
-                // Exclude the current post if we have one
-                if (type !== 'prebuilt' && lid === $('#post_ID').val()) {
-                    continue;
-                }
-                if (query !== '' && layouts[lid].name.toLowerCase().indexOf(query) === -1) {
-                    continue;
-                }
+            if( _.size(layouts) ) {
+                for (var lid in layouts) {
+                    // Exclude the current post if we have one
+                    if (type !== 'prebuilt' && lid === $('#post_ID').val()) {
+                        continue;
+                    }
+                    if (query !== '' && layouts[lid].name.toLowerCase().indexOf(query) === -1) {
+                        continue;
+                    }
 
-                var $l = $(this.entryTemplate({
-                    name: layouts[lid].name,
-                    description: layouts[lid].description
-                }));
+                    // Create the layout item to display in the list
+                    var $l = $(this.entryTemplate({
+                        name: layouts[lid].name,
+                        description: layouts[lid].description
+                    }));
 
-                // Create and append the
-                $l.appendTo(c).data({'type': type, 'lid': lid});
+                    // Create and append the
+                    $l.appendTo(c).data({'type': type, 'lid': lid});
+                }
             }
         },
 
@@ -2778,7 +2803,7 @@ String.prototype.panelsProcessTemplate = function(){
             this.setStatusMessage(panelsOptions.loc.prebuilt_loading, true);
 
             $.post(
-                ajaxurl,
+                panelsOptions.ajaxurl,
                 {
                     action: 'so_panels_get_prebuilt_layout',
                     type: type,
@@ -2911,7 +2936,8 @@ String.prototype.panelsProcessTemplate = function(){
          */
         setRowModel: function(model){
             this.model = model;
-            if( this.model === null ) {
+
+            if( _.isEmpty( this.model ) ) {
                 return this;
             }
 
@@ -3390,6 +3416,9 @@ jQuery( function($){
         } );
 
         container.removeClass('so-panels-loading');
+
+        // Trigger a global jQuery event after we've setup the builder view
+        $(document).trigger( 'panels_setup', builderView );
     }
 } );
 
@@ -3458,6 +3487,8 @@ jQuery( function($){
                 $$.find( '.siteorigin-panels-display-builder').parent().remove();
             }
 
+            // Trigger a global jQuery event after we've setup the builder view
+            $(document).trigger( 'panels_setup', builderView );
         });
     };
 
@@ -3471,4 +3502,4 @@ jQuery( function($){
         $('.siteorigin-page-builder-widget').soPanelsSetupBuilderWidget();
     });
 
-})(jQuery);
+})( jQuery );
