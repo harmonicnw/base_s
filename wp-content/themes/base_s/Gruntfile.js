@@ -30,7 +30,6 @@ module.exports = function(grunt) {
         sass: {
             dist: {
                 options: {
-                    sourcemap: 'none',
                     style: 'expanded',
                 },
                 files: {
@@ -125,6 +124,36 @@ module.exports = function(grunt) {
             }
         },
 
+        //Copy any bower_components required in the production environment
+        copy: {
+            main: {
+                files: [{
+                    expand: true,
+                    //dot: true,
+                    cwd: 'bower_components/',
+                    dest: 'assets/bower_components/',
+                    src: [
+                        'bootstrap/**',
+                        'jquery/**',
+                        'components-font-awesome/**',
+                        'respondJS/**'
+                    ]
+                }]
+            }
+        },
+
+        // Empties folders to start fresh
+        clean: {
+          dist: {
+            files: [{
+              dot: true,
+              src: [
+                'assets/bower_components/**',
+              ]
+            }]
+          }
+        },
+
         // deploy via rsync
         deploy: {
             options: {
@@ -155,5 +184,7 @@ module.exports = function(grunt) {
 
     // register task
     grunt.registerTask('default', ['sass', 'autoprefixer', 'cssmin', 'uglify', 'imagemin', 'watch']);
+
+    grunt.registerTask('build', ['clean:dist', 'copy:main'])
 
 };
