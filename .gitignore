@@ -25,3 +25,6 @@ wp-content/cache/
 wp-content/themes/twenty*
 wp-content/upgrade/
 wp-content/uploads/
+wp-content/plugins/velvet-blues-update-urls/
+wp-content/*.sql
+*.cache
